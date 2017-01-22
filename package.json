@@ -1,0 +1,29 @@
+{
+  "name": "dobotpi",
+  "version": "1.0.0",
+  "description": "Raspberry Pi / Arduino controlled robot with a web cam.",
+  "main": "dobotpi.js",
+  "dependencies": {
+    "johnny-five": "^0.10.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://adriantomic@github.com/adriantomic/DobotPi.git"
+  },
+  "keywords": [
+    "Robot",
+    "Raspberry",
+    "Pi",
+    "Node"
+  ],
+  "author": "Adrian Tomic",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adriantomic/DobotPi/issues"
+  },
+  "homepage": "https://github.com/adriantomic/DobotPi#readme"
+}
