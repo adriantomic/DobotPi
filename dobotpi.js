@@ -1,58 +1,74 @@
-/*
-* @Author: Adrian Tomic
-* @Date:   2017-01-18 06:02:54
-* @Last Modified by:   Adrian Tomic
-* @Last Modified time: 2017-01-22 14:19:36
-*/
-
 // https://www.bananarobotics.com/shop/How-to-use-the-HG7881-(L9110)-Dual-Channel-Motor-Driver-Module
 // We recommend using input 1A to control the speed of each motor and input 1B to control the direction.
 
-'use strict';
+// http://blog.ricardofilipe.com/post/getting-started-arduino-johhny-five
 
 var five = require("johnny-five");
+const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+
 var board = new five.Board();
 
+// Web server stuff
+app.use(express.static(__dirname + '/public'));
+app.get('/', function(req, res) {  
+        res.sendFile(__dirname + '/public/index.html');
+});
+
+app.listen(3000, function () {
+  console.log('App listening on port 3000!');
+});
+
+server.listen(4000);
+
+// Arduino
 board.on("ready", function() {
 
-  var motor;
+  var IMUData;
 
-  motor = new five.Motor({
-    pins: {
-      pwm: 5, // 1B (yellow)
-      dir: 6 // 1A (green)
+  // Motors
+  var motors = new five.Motors([
+    { pins: { dir: 11, pwm: 10 }}, // Front  left
+    //{ pins: { dir: 4, pwm: 5 }, invertPWM: true }, // Front right
+    //{ pins: { dir: 4, pwm: 6 }, invertPWM: true }, // Rear left
+    //{ pins: { dir: 4, pwm: 9 }, invertPWM: true }  // Rear right
+  ]);
+
+  // Add a MPU6050
+  var gyro = new five.Gyro({
+    controller: "MPU6050"
+  });
+
+  gyro.on("change", function() {
+    IMUData = this;
+    // console.log("gyro");
+    // console.log("  x            : ", this.x);
+    // console.log("  y            : ", this.y);
+    // console.log("  z            : ", this.z);
+    // console.log("  pitch        : ", this.pitch);
+    // console.log("  roll         : ", this.roll);
+    // console.log("  yaw          : ", this.yaw);
+    // console.log("  rate         : ", this.rate);
+    // console.log("  isCalibrated : ", this.isCalibrated);
+    // console.log("--------------------------------------");
+  });
+
+  // Socket.io stuff
+  io.on('connection', function(socket){
+    console.log('Socket Connected: ' + socket.id);
+
+    
+    function emitIMUData() {
+      io.emit('MPU6050', {
+        IMUData: IMUData.pitch,
+      });
     }
+    setTimeout(emitIMUData, 500);
   });
 
   board.repl.inject({
-    motor: motor
+    motors: motors
   });
-
-
-  // for (var i = 0; i < 255; i++) {
-  //   board.wait(500, function() {
-  //     console.log(i);
-  //   });
-  // }
-
-  motor.start(100);
-
-  board.wait(2000, function() {
-    motor.stop();
-  });
-
-  // var motors = new five.Motors([
-  //   { pins: { dir: 4, pwm: 3 } }, // Front  left
-  //   { pins: { dir: 4, pwm: 5 } }, // Front right
-  //   { pins: { dir: 4, pwm: 6 } }, // Rear left
-  //   { pins: { dir: 4, pwm: 9 } }  // Rear right
-  // ]);
-
-
-  // Create a standard `led` component instance
-  // var led = new five.Led(13);
-
-  // "blink" the led in 500ms
-  // on-off phase periods
-  // led.blink(500);
 });
